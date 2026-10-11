@@ -1,0 +1,21 @@
+{
+  "name": "sathyabama-student-portal",
+  "version": "1.0.1",
+  "description": "Blazing fast frontend wrapper and REST proxy for Sathyabama Student Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
+  }
+}

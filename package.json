@@ -1,0 +1,9 @@
+{
+  "name": "sist-vercel-app",
+  "version": "1.0.0",
+  "description": "Root runner for Sathyabama Student Portal",
+  "scripts": {
+    "start": "node SIST-ERP-8/server.js",
+    "dev": "node SIST-ERP-8/server.js"
+  }
+}

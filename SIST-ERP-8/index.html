@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+  <title>SATHYABAMA ERP</title>
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="shortcut icon" href="favicon.ico"/>
+  <link rel="apple-touch-icon" href="favicon.png"/>
+  <link rel="manifest" href="/manifest.json"/>
+
+  <!-- Mobile PWA & Status Bar Styling -->
+  <meta name="theme-color" content="#0f131c"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SIST Portal"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+
+  <!-- Styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Cloudflare Turnstile Verification -->
+  <script>
+    window.turnstileToken = '';
+    function onTurnstileSuccess(token) {
+      window.turnstileToken = token;
+      console.log('Turnstile verified:', token ? token.substring(0, 15) + '...' : '');
+    }
+    function onTurnstileExpired() {
+      window.turnstileToken = '';
+    }
+    function onTurnstileError() {
+      window.turnstileToken = '';
+    }
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body class="bg-[#0f131c] text-[#dfe2ee] min-h-screen flex flex-col justify-between relative selection:bg-blue-600 selection:text-white overflow-x-hidden">
+
+  <!-- WebThreads Animated Background Shader Canvas -->
+  <div id="canvasContainer" class="fixed inset-0 pointer-events-none z-0 overflow-hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none !important; z-index: -1 !important; overflow: hidden;">
+    <canvas id="threads-canvas" class="absolute inset-0 w-full h-full" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none !important;"></canvas>
+    <div class="absolute inset-0 bg-[#0f131c]/30" style="pointer-events: none !important;"></div>
+  </div>
+
+  <!-- Global Header Bar -->
+  <header class="relative z-20 w-full glass-nav px-4 md:px-8 py-2.5 sm:py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- University Branding -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <span class="material-symbols-outlined text-xl">school</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline text-lg font-bold text-white leading-none tracking-tight">SATHYABAMA</span>
+          <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">Institute of Science and Technology</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-4 md:px-8 py-6 sm:py-8">
+    
+    <!-- LOGIN SECTION -->
+    <section id="loginSection" class="w-full max-w-[460px] my-auto">
+      <div class="glass-card rounded-2xl p-4 sm:p-8 shadow-2xl relative overflow-hidden">
+        <div class="text-center mb-2.5 sm:mb-6">
+          <div class="login-avatar-badge inline-flex items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-blue-600/15 border border-blue-500/30 text-blue-400 mb-2 sm:mb-3 shadow-lg shadow-blue-600/10">
+            <span class="material-symbols-outlined text-xl sm:text-2xl">account_circle</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight mb-0.5 sm:mb-1">Student Portal Login</h1>
+          <p class="text-[11px] sm:text-xs text-gray-400">Enter your official credentials to access student details.</p>
+        </div>
+
+        <div id="statusMessage" class="hidden"></div>
+
+        <form id="loginForm" class="space-y-2.5 sm:space-y-4" onsubmit="handleLoginSubmit(event)">
+          <!-- Portal Role Selection (Parents / Student) -->
+          <div>
+            <label class="block text-[11px] sm:text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1 sm:mb-1.5">Portal Gateway</label>
+            <div class="grid grid-cols-2 gap-2 p-1 bg-gray-900/60 rounded-xl border border-white/5">
+              <button type="button" id="roleBtnParent" onclick="setLoginRole('parent')"
+                      class="py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow-md shadow-blue-600/30">
+                <span class="material-symbols-outlined text-sm">family_restroom</span>
+                <span>Parents (Fast)</span>
+              </button>
+              <button type="button" id="roleBtnStudent" onclick="setLoginRole('student')"
+                      class="py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-gray-400 hover:text-white">
+                <span class="material-symbols-outlined text-sm">school</span>
+                <span>Student</span>
+              </button>
+            </div>
+            <input type="hidden" id="loginType" name="loginType" value="parent" />
+          </div>
+
+          <div>
+            <label for="regNumber" class="block text-[11px] sm:text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1 sm:mb-1.5">Register Number *</label>
+            <div class="relative flex items-center glass-input rounded-xl overflow-hidden">
+              <span class="material-symbols-outlined text-gray-400 absolute left-3 text-lg pointer-events-none">person</span>
+              <input type="text" id="regNumber" name="regNumber" placeholder="Register Number" required
+                     autocomplete="username" maxlength="30" spellcheck="false"
+                     autocapitalize="characters" autocorrect="off" enterkeyhint="next"
+                     class="w-full bg-transparent pl-10 pr-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label for="password" class="block text-[11px] sm:text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1 sm:mb-1.5">Password *</label>
+            <div class="relative flex items-center glass-input rounded-xl overflow-hidden">
+              <span class="material-symbols-outlined text-gray-400 absolute left-3 text-lg pointer-events-none">lock</span>
+              <input type="password" id="password" name="password" placeholder="••••••••" required
+                     autocomplete="current-password" maxlength="128" enterkeyhint="go"
+                     autocapitalize="none" autocorrect="off"
+                     class="w-full bg-transparent pl-10 pr-11 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none" />
+              <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" tabindex="-1"
+                      class="absolute right-2.5 text-gray-400 hover:text-white p-1 rounded-lg transition-colors flex items-center justify-center"
+                      title="Toggle password visibility" aria-label="Toggle password visibility">
+                <span class="material-symbols-outlined text-lg" id="togglePasswordIcon">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-0.5">
+            <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer select-none">
+              <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded bg-gray-800 border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900" />
+              <span>Remember Register Number</span>
+            </label>
+          </div>
+
+          <!-- Cloudflare Turnstile Human Verification Container -->
+          <div class="pt-1 flex flex-col items-center justify-center min-h-[66px]">
+            <div id="cfTurnstileWidget" class="cf-turnstile" data-sitekey="0x4AAAAAAFP701hAnz1N8w3b" data-theme="dark" data-size="flexible" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired"></div>
+          </div>
+
+          <div class="pt-1">
+            <button type="submit" id="submitBtn" 
+                    class="w-full py-3 sm:py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg">login</span>
+              <span>Sign In to Dashboard</span>
+            </button>
+          </div>
+
+          <!-- Alternative Fast Connect -->
+          <div class="relative flex items-center justify-center my-3">
+            <div class="border-t border-white/10 w-full"></div>
+            <span class="bg-[#121622] px-3 text-[10px] text-gray-400 font-semibold uppercase tracking-wider">or 1-click connect</span>
+            <div class="border-t border-white/10 w-full"></div>
+          </div>
+
+          <div class="space-y-2">
+            <button type="button" onclick="toggleSyncModal(true)"
+                    class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-900/40 to-indigo-900/40 hover:from-blue-900/60 hover:to-indigo-900/60 border border-blue-500/30 text-white font-medium text-xs transition-all flex items-center justify-center gap-2 shadow-sm">
+              <span class="material-symbols-outlined text-base text-blue-400">sync_alt</span>
+              <span>1-Click Sync from Official ERP (Bypass Captcha)</span>
+            </button>
+            <button type="button" onclick="toggleTokenModal(true)"
+                    class="w-full py-2 px-4 rounded-xl bg-transparent hover:bg-white/5 text-gray-400 hover:text-gray-200 text-[11px] transition-all flex items-center justify-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">key</span>
+              <span>Paste ERP Session Token Directly</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- 1-CLICK SYNC MODAL -->
+    <div id="syncModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+      <div class="glass-card rounded-2xl max-w-lg w-full p-6 space-y-4 border border-white/10 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+          <div class="flex items-center gap-2.5 text-white font-bold text-base">
+            <span class="material-symbols-outlined text-blue-400">sync_alt</span>
+            <span>1-Click Sync from Official ERP</span>
+          </div>
+          <button type="button" onclick="toggleSyncModal(false)" class="text-gray-400 hover:text-white p-1 rounded-lg">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <p class="text-xs text-gray-300 leading-relaxed">
+          Because Cloudflare Turnstile restricts verification to official Sathyabama domains, you can sync your live session directly from the portal in one click:
+        </p>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3 rounded-xl bg-gray-900/70 border border-white/5 space-y-1.5">
+            <div class="font-semibold text-white flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center text-[10px]">1</span>
+              <span>Log into Official ERP in your browser</span>
+            </div>
+            <p class="text-gray-400 pl-7 text-[11px]">
+              Open <a href="https://erp.sathyabama.ac.in/account/login" target="_blank" class="text-blue-400 underline hover:text-blue-300">erp.sathyabama.ac.in</a> and sign in with Parent or Student credentials.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-900/70 border border-white/5 space-y-2">
+            <div class="font-semibold text-white flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center text-[10px]">2</span>
+              <span>Use the Bookmarklet or 1-line Console command</span>
+            </div>
+            <div class="pl-7 space-y-2">
+              <div class="flex items-center gap-2">
+                <a id="syncBookmarkletLink" href="javascript:(function(){var t=localStorage.getItem('Access-Token');if(!t){alert('Please log into Sathyabama ERP first!');return;}window.location.href='http://localhost:3000/?token='+encodeURIComponent(t);})();"
+                   class="py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] inline-flex items-center gap-1.5 cursor-grab shadow-sm"
+                   title="Drag this button to your Bookmarks Bar">
+                  <span class="material-symbols-outlined text-sm">bookmark</span>
+                  <span>Drag: 🔗 Sync SIST Portal</span>
+                </a>
+                <span class="text-[10px] text-gray-400">(Drag to your Bookmarks bar)</span>
+              </div>
+              <p class="text-[11px] text-gray-400">Or paste this command into browser console (<kbd class="bg-gray-800 px-1 py-0.5 rounded text-[10px] text-gray-300">F12</kbd>) on ERP:</p>
+              <div class="flex items-center gap-1 bg-black/50 p-2 rounded-lg font-mono text-[10px] text-emerald-400 overflow-x-auto border border-white/5">
+                <span class="flex-1 select-all" id="syncCommandText">window.location.href='http://localhost:3000/?token='+localStorage.getItem('Access-Token');</span>
+                <button type="button" onclick="copySyncCommand()" class="text-gray-400 hover:text-white px-1.5 py-0.5 rounded bg-gray-800 text-[10px]">Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button type="button" onclick="toggleSyncModal(false)" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-xs font-semibold">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASTE TOKEN MODAL -->
+    <div id="tokenModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+      <div class="glass-card rounded-2xl max-w-md w-full p-6 space-y-4 border border-white/10 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+          <div class="flex items-center gap-2.5 text-white font-bold text-base">
+            <span class="material-symbols-outlined text-blue-400">key</span>
+            <span>Paste ERP Session Token</span>
+          </div>
+          <button type="button" onclick="toggleTokenModal(false)" class="text-gray-400 hover:text-white p-1 rounded-lg">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <p class="text-xs text-gray-300 leading-relaxed">
+          Enter the <code class="bg-gray-800 px-1 py-0.5 rounded text-blue-400">Access-Token</code> from your browser session to immediately load your complete dashboard:
+        </p>
+
+        <div class="space-y-2">
+          <textarea id="manualTokenInput" rows="3" placeholder="ey..."
+                    class="w-full bg-gray-900/80 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 font-mono focus:outline-none focus:border-blue-500"></textarea>
+          <p class="text-[10px] text-gray-400">Tip: In ERP page console, type <code class="text-emerald-400 font-mono">copy(localStorage.getItem('Access-Token'))</code> to copy it to your clipboard.</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="toggleTokenModal(false)" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-xs font-semibold">
+            Cancel
+          </button>
+          <button type="button" onclick="handleManualTokenSubmit()" id="manualTokenBtn"
+                  class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-blue-600/30">
+            <span class="material-symbols-outlined text-sm">login</span>
+            <span>Connect Session</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- DASHBOARD SECTION -->
+    <section id="dashboardSection" class="w-full max-w-7xl hidden my-auto space-y-4 sm:space-y-6 pb-6">
+      
+      <!-- Desktop Student Header Bar (Large screen view) -->
+      <div class="flex glass-card rounded-2xl p-6 items-center justify-between gap-4">
+        <div class="flex items-center gap-4 text-left">
+          <div id="avatarInitials" class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold text-lg flex items-center justify-center">
+            --
+          </div>
+          <div>
+            <h2 id="headerStudentName" class="text-xl font-bold text-white tracking-tight">--</h2>
+            <div class="flex flex-wrap items-center justify-start gap-2 text-xs text-gray-400 mt-0.5">
+              <span id="headerRegNo" class="font-semibold">--</span>
+              <span>•</span>
+              <span id="headerBranch">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="handleSignOut()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1.5 transition-all">
+            <span class="material-symbols-outlined text-sm">logout</span>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Bar Tabs -->
+
+      <div class="flex glass-card p-1.5 sm:p-2 rounded-2xl items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scrollbar whitespace-nowrap">
+        <button id="tab-btn-profile" onclick="setTab('profile')"
+                class="px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-blue-600 text-white shadow-lg shadow-blue-500/25 flex items-center gap-1.5 sm:gap-2 transition-all flex-shrink-0">
+          <span class="material-symbols-outlined text-base sm:text-lg">person</span>
+          <span>Student Profile</span>
+        </button>
+        <button id="tab-btn-attendance" onclick="setTab('attendance')"
+                class="px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5 sm:gap-2 transition-all flex-shrink-0">
+          <span class="material-symbols-outlined text-base sm:text-lg">fact_check</span>
+          <span>Attendance Tracker</span>
+        </button>
+        <button id="tab-btn-cae" onclick="setTab('cae')"
+                class="px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5 sm:gap-2 transition-all flex-shrink-0">
+          <span class="material-symbols-outlined text-base sm:text-lg">grade</span>
+          <span>CAE & Exam Results</span>
+        </button>
+        <button id="tab-btn-timetable" onclick="setTab('timetable')"
+                class="px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5 sm:gap-2 transition-all flex-shrink-0">
+          <span class="material-symbols-outlined text-base sm:text-lg">calendar_month</span>
+          <span>Class Timetable</span>
+        </button>
+      </div>
+
+      <!-- Tab View Content Host -->
+      <div id="dashboardTabContent"></div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer id="portalFooter" class="relative z-10 w-full py-4 text-center text-xs text-gray-600 border-t border-white/5">
+    Sathyabama Institute of Science and Technology
+  </footer>
+
+  <!-- Dedicated Native Mobile Bottom Navigation Bar (Hidden on desktop, only appears when Dashboard is active) -->
+  <nav id="mobileBottomNav" class="hidden mobile-bottom-nav items-center justify-around px-2 py-1">
+    <button id="mobile-tab-btn-profile" onclick="setTab('profile')" class="mobile-nav-btn active">
+      <div class="nav-icon-wrapper">
+        <span class="material-symbols-outlined text-xl">person</span>
+      </div>
+      <span class="mt-0.5">Profile</span>
+    </button>
+    <button id="mobile-tab-btn-attendance" onclick="setTab('attendance')" class="mobile-nav-btn">
+      <div class="nav-icon-wrapper">
+        <span class="material-symbols-outlined text-xl">fact_check</span>
+      </div>
+      <span class="mt-0.5">Attendance</span>
+    </button>
+    <button id="mobile-tab-btn-cae" onclick="setTab('cae')" class="mobile-nav-btn">
+      <div class="nav-icon-wrapper">
+        <span class="material-symbols-outlined text-xl">grade</span>
+      </div>
+      <span class="mt-0.5">CAE Marks</span>
+    </button>
+    <button id="mobile-tab-btn-timetable" onclick="setTab('timetable')" class="mobile-nav-btn">
+      <div class="nav-icon-wrapper">
+        <span class="material-symbols-outlined text-xl">calendar_month</span>
+      </div>
+      <span class="mt-0.5">Timetable</span>
+    </button>
+  </nav>
+
+  <!-- Core Scripts -->
+  <script src="portal-api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
